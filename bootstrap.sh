@@ -15,6 +15,15 @@ NC='\033[0m' # No Color
 # Current values
 CURRENT_NAME="ademoverflow-template"
 
+# Helper function for sed (handles macOS vs Linux)
+run_sed() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Project Bootstrap Script${NC}"
 echo -e "${BLUE}========================================${NC}"
@@ -103,6 +112,10 @@ echo "  - package.json"
 echo "  - pyproject.toml"
 echo "  - compose.yaml"
 echo "  - core/Dockerfile"
+echo "  - README.md"
+echo "  - CLAUDE.md"
+echo "  - core/README.md"
+echo "  - webapp/README.md"
 echo ""
 
 # Confirm
@@ -118,49 +131,58 @@ echo -e "${BLUE}Applying changes...${NC}"
 
 # Update package.json
 echo -e "  Updating ${GREEN}package.json${NC}..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    sed -i '' "s/\"name\": \"${CURRENT_NAME}\"/\"name\": \"${PROJECT_NAME}\"/" package.json
-else
-    # Linux
-    sed -i "s/\"name\": \"${CURRENT_NAME}\"/\"name\": \"${PROJECT_NAME}\"/" package.json
-fi
+run_sed "s/\"name\": \"${CURRENT_NAME}\"/\"name\": \"${PROJECT_NAME}\"/" package.json
 
 # Update pyproject.toml (root)
 echo -e "  Updating ${GREEN}pyproject.toml${NC}..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s/name = \"${CURRENT_NAME}\"/name = \"${PROJECT_NAME}\"/" pyproject.toml
-else
-    sed -i "s/name = \"${CURRENT_NAME}\"/name = \"${PROJECT_NAME}\"/" pyproject.toml
-fi
+run_sed "s/name = \"${CURRENT_NAME}\"/name = \"${PROJECT_NAME}\"/" pyproject.toml
 
 # Update compose.yaml - image names and ports
 echo -e "  Updating ${GREEN}compose.yaml${NC}..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # Update image names
-    sed -i '' "s/${CURRENT_NAME}-core/${PROJECT_NAME}-core/g" compose.yaml
-    sed -i '' "s/${CURRENT_NAME}-webapp/${PROJECT_NAME}-webapp/g" compose.yaml
-    # Update ports
-    sed -i '' "s/\"8997:8080\"/\"${ADMINER_PORT}:8080\"/" compose.yaml
-    sed -i '' "s/\"8999:80\"/\"${CORE_PORT}:80\"/" compose.yaml
-    sed -i '' "s/\"8998:3000\"/\"${WEBAPP_PORT}:3000\"/" compose.yaml
-else
-    # Update image names
-    sed -i "s/${CURRENT_NAME}-core/${PROJECT_NAME}-core/g" compose.yaml
-    sed -i "s/${CURRENT_NAME}-webapp/${PROJECT_NAME}-webapp/g" compose.yaml
-    # Update ports
-    sed -i "s/\"8997:8080\"/\"${ADMINER_PORT}:8080\"/" compose.yaml
-    sed -i "s/\"8999:80\"/\"${CORE_PORT}:80\"/" compose.yaml
-    sed -i "s/\"8998:3000\"/\"${WEBAPP_PORT}:3000\"/" compose.yaml
-fi
+run_sed "s/${CURRENT_NAME}-core/${PROJECT_NAME}-core/g" compose.yaml
+run_sed "s/${CURRENT_NAME}-webapp/${PROJECT_NAME}-webapp/g" compose.yaml
+run_sed "s/\"8997:8080\"/\"${ADMINER_PORT}:8080\"/" compose.yaml
+run_sed "s/\"8999:80\"/\"${CORE_PORT}:80\"/" compose.yaml
+run_sed "s/\"8998:3000\"/\"${WEBAPP_PORT}:3000\"/" compose.yaml
 
 # Update core/Dockerfile
 echo -e "  Updating ${GREEN}core/Dockerfile${NC}..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s/--package ${CURRENT_NAME}/--package ${PROJECT_NAME}/" core/Dockerfile
-else
-    sed -i "s/--package ${CURRENT_NAME}/--package ${PROJECT_NAME}/" core/Dockerfile
-fi
+run_sed "s/--package ${CURRENT_NAME}/--package ${PROJECT_NAME}/" core/Dockerfile
+
+# Update README.md - remove bootstrap section and update project info
+echo -e "  Updating ${GREEN}README.md${NC}..."
+# Update title
+run_sed "s/# Ademoverflow Template/# ${PROJECT_DESCRIPTION}/" README.md
+# Update ports in the documentation
+run_sed "s/localhost:8997/localhost:${ADMINER_PORT}/g" README.md
+run_sed "s/localhost:8998/localhost:${WEBAPP_PORT}/g" README.md
+run_sed "s/localhost:8999/localhost:${CORE_PORT}/g" README.md
+# Remove bootstrap section (lines between "### 1. Bootstrap" and "### 2. Configure")
+run_sed '/### 1\. Bootstrap the Project/,/### 2\. Configure Environment/{/### 2\. Configure Environment/!d;}' README.md
+# Renumber remaining steps
+run_sed 's/### 2\. Configure Environment/### 1. Configure Environment/' README.md
+run_sed 's/### 3\. Start Development/### 2. Start Development/' README.md
+run_sed 's/### 4\. Access Services/### 3. Access Services/' README.md
+# Remove bootstrap.sh from project structure
+run_sed '/bootstrap.sh/d' README.md
+
+# Update CLAUDE.md - update ports
+echo -e "  Updating ${GREEN}CLAUDE.md${NC}..."
+run_sed "s/| Adminer | 8997 |/| Adminer | ${ADMINER_PORT} |/" CLAUDE.md
+run_sed "s/| Webapp  | 8998 |/| Webapp  | ${WEBAPP_PORT} |/" CLAUDE.md
+run_sed "s/| Core API| 8999 |/| Core API| ${CORE_PORT} |/" CLAUDE.md
+
+# Update core/README.md - update port
+echo -e "  Updating ${GREEN}core/README.md${NC}..."
+run_sed "s/localhost:8999/localhost:${CORE_PORT}/g" core/README.md
+
+# Update webapp/README.md - update port
+echo -e "  Updating ${GREEN}webapp/README.md${NC}..."
+run_sed "s/localhost:8998/localhost:${WEBAPP_PORT}/g" webapp/README.md
+
+# Remove bootstrap.sh itself
+echo -e "  Removing ${GREEN}bootstrap.sh${NC}..."
+rm -f bootstrap.sh
 
 echo ""
 echo -e "${GREEN}========================================${NC}"
