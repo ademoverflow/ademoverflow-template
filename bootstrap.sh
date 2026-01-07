@@ -70,13 +70,16 @@ while true; do
     fi
 done
 
-# Prompt for project description
+# Generate human-readable title from project name (my-awesome-project -> My Awesome Project)
+PROJECT_TITLE=$(echo "$PROJECT_NAME" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')
+echo -e "${BLUE}Project title: ${PROJECT_TITLE}${NC}"
+
+# Prompt for project description (for README)
 echo ""
-echo -e "${YELLOW}Enter project description${NC} (e.g., 'My Awesome Project'):"
+echo -e "${YELLOW}Enter project description${NC} (for README, e.g., 'A tool for managing tasks'):"
 read -r PROJECT_DESCRIPTION
 if [[ -z "$PROJECT_DESCRIPTION" ]]; then
-    # Default to title-cased project name
-    PROJECT_DESCRIPTION=$(echo "$PROJECT_NAME" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')
+    PROJECT_DESCRIPTION="A production-ready full-stack web application."
     echo -e "${BLUE}Using default description: ${PROJECT_DESCRIPTION}${NC}"
 fi
 
@@ -102,6 +105,7 @@ echo -e "${BLUE}  Configuration Summary${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 echo -e "  Project Name:        ${GREEN}${PROJECT_NAME}${NC}"
+echo -e "  Project Title:       ${GREEN}${PROJECT_TITLE}${NC}"
 echo -e "  Description:         ${GREEN}${PROJECT_DESCRIPTION}${NC}"
 echo -e "  Adminer Port:        ${GREEN}${ADMINER_PORT}${NC}"
 echo -e "  Webapp Port:         ${GREEN}${WEBAPP_PORT}${NC}"
@@ -154,12 +158,12 @@ run_sed "s/--package ${CURRENT_NAME}/--package ${PROJECT_NAME}/" core/Dockerfile
 
 # Update core/src/core/main.py - FastAPI title and description
 echo -e "  Updating ${GREEN}core/src/core/main.py${NC}..."
-run_sed "s/title=\"Ademoverflow Template\"/title=\"${PROJECT_DESCRIPTION}\"/" core/src/core/main.py
-run_sed "s/description=\"Ademoverflow Template Core API\"/description=\"${PROJECT_DESCRIPTION} Core API\"/" core/src/core/main.py
+run_sed "s/title=\"Ademoverflow Template\"/title=\"${PROJECT_TITLE}\"/" core/src/core/main.py
+run_sed "s/description=\"Ademoverflow Template Core API\"/description=\"${PROJECT_TITLE} Core API\"/" core/src/core/main.py
 
 # Update webapp/index.html - page title
 echo -e "  Updating ${GREEN}webapp/index.html${NC}..."
-run_sed "s/<title>Ademoverflow Template<\/title>/<title>${PROJECT_DESCRIPTION}<\/title>/" webapp/index.html
+run_sed "s/<title>Ademoverflow Template<\/title>/<title>${PROJECT_TITLE}<\/title>/" webapp/index.html
 
 # Update uv.lock - package references
 echo -e "  Updating ${GREEN}uv.lock${NC}..."
@@ -169,7 +173,10 @@ run_sed "s/name = \"${CURRENT_NAME}\"/name = \"${PROJECT_NAME}\"/" uv.lock
 # Update README.md - remove bootstrap section and update project info
 echo -e "  Updating ${GREEN}README.md${NC}..."
 # Update title
-run_sed "s/# Ademoverflow Template/# ${PROJECT_DESCRIPTION}/" README.md
+run_sed "s/# Ademoverflow Template/# ${PROJECT_TITLE}/" README.md
+# Update description (the line after ## Description)
+# Using a different approach: replace the specific default description line
+run_sed "s/A production-ready monorepo template for full-stack web applications with Python\/FastAPI backend and React\/TypeScript frontend./${PROJECT_DESCRIPTION}/" README.md
 # Update ports in the documentation
 run_sed "s/localhost:8997/localhost:${ADMINER_PORT}/g" README.md
 run_sed "s/localhost:8998/localhost:${WEBAPP_PORT}/g" README.md
