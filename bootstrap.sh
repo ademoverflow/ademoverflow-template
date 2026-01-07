@@ -71,7 +71,8 @@ while true; do
 done
 
 # Generate human-readable title from project name (my-awesome-project -> My Awesome Project)
-PROJECT_TITLE=$(echo "$PROJECT_NAME" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')
+# Replace hyphens with spaces, then capitalize each word
+PROJECT_TITLE=$(echo "$PROJECT_NAME" | tr '-' ' ' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
 echo -e "${BLUE}Project title: ${PROJECT_TITLE}${NC}"
 
 # Prompt for project description (for README)
