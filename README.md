@@ -1,5 +1,7 @@
 # Ademoverflow Template
 
+## Description
+
 A production-ready monorepo template for full-stack web applications with Python/FastAPI backend and React/TypeScript frontend.
 
 ## Architecture

@@ -4,7 +4,7 @@ This document provides essential context for AI assistants working with this cod
 
 ## Project Overview
 
-Full-stack monorepo template with:
+Full-stack monorepo with:
 - **Backend**: Python 3.13+ / FastAPI
 - **Frontend**: TypeScript / React 19 / Vite
 - **Database**: PostgreSQL 17
