@@ -112,6 +112,9 @@ echo "  - package.json"
 echo "  - pyproject.toml"
 echo "  - compose.yaml"
 echo "  - core/Dockerfile"
+echo "  - core/src/core/main.py"
+echo "  - webapp/index.html"
+echo "  - uv.lock"
 echo "  - README.md"
 echo "  - CLAUDE.md"
 echo "  - core/README.md"
@@ -148,6 +151,20 @@ run_sed "s/\"8998:3000\"/\"${WEBAPP_PORT}:3000\"/" compose.yaml
 # Update core/Dockerfile
 echo -e "  Updating ${GREEN}core/Dockerfile${NC}..."
 run_sed "s/--package ${CURRENT_NAME}/--package ${PROJECT_NAME}/" core/Dockerfile
+
+# Update core/src/core/main.py - FastAPI title and description
+echo -e "  Updating ${GREEN}core/src/core/main.py${NC}..."
+run_sed "s/title=\"Ademoverflow Template\"/title=\"${PROJECT_DESCRIPTION}\"/" core/src/core/main.py
+run_sed "s/description=\"Ademoverflow Template Core API\"/description=\"${PROJECT_DESCRIPTION} Core API\"/" core/src/core/main.py
+
+# Update webapp/index.html - page title
+echo -e "  Updating ${GREEN}webapp/index.html${NC}..."
+run_sed "s/<title>Ademoverflow Template<\/title>/<title>${PROJECT_DESCRIPTION}<\/title>/" webapp/index.html
+
+# Update uv.lock - package references
+echo -e "  Updating ${GREEN}uv.lock${NC}..."
+run_sed "s/\"${CURRENT_NAME}\"/\"${PROJECT_NAME}\"/g" uv.lock
+run_sed "s/name = \"${CURRENT_NAME}\"/name = \"${PROJECT_NAME}\"/" uv.lock
 
 # Update README.md - remove bootstrap section and update project info
 echo -e "  Updating ${GREEN}README.md${NC}..."
