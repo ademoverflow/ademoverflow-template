@@ -10,6 +10,8 @@ Full-stack monorepo with:
 - **Database**: PostgreSQL 17
 - **Containerization**: Docker Compose
 
+All development commands are available via `make`. Run `make help` to see all targets.
+
 ## Code Quality Standards
 
 ### Python (Ruff + MyPy)
@@ -21,12 +23,14 @@ Configuration in `/pyproject.toml`:
 - All rules enabled with specific ignores (see `[tool.ruff.lint]`)
 
 ```bash
-poe check_format   # Check formatting
-poe fix_format     # Fix formatting
-poe check_lint     # Run linting
-poe check_sort     # Check import order
-poe fix_sort       # Fix import order
-poe type_check     # Run mypy
+make check-format   # Check formatting
+make fix-format     # Fix formatting
+make check-lint     # Run linting
+make check-sort     # Check import order
+make fix-sort       # Fix import order
+make type-check     # Run mypy
+make check-python   # Run all Python checks
+make fix            # Fix all auto-fixable Python issues
 ```
 
 ### TypeScript/JavaScript (Biome)
@@ -37,9 +41,15 @@ Configuration in `/biome.json`:
 - Organize imports enabled
 
 ```bash
-pnpm lint          # Run linter
-pnpm format        # Run formatter
-pnpm check         # Run both
+make lint-webapp    # Run linter
+make format-webapp  # Run formatter
+make check-webapp   # Run both
+```
+
+### All Checks
+
+```bash
+make check          # Run ALL checks (Python + webapp)
 ```
 
 ### Commit Messages
@@ -72,6 +82,8 @@ Allowed types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`
 │       ├── pages/          # Page components
 │       └── integrations/   # Library integrations
 ├── scripts/                 # Development utilities
+├── .claude/skills/          # Claude Code slash commands
+├── Makefile                 # Development command runner
 ├── compose.yaml            # Docker orchestration
 └── bootstrap.sh            # Project initialization
 ```
@@ -174,11 +186,12 @@ import { env } from "@/env";
 
 ## Testing
 
-### Python Tests
 ```bash
-# Run from project root
-uv run pytest core/tests/
+make test-core      # Run Python tests (pytest, inside Docker)
+make test-webapp    # Run JS tests (vitest, on host)
 ```
+
+### Python Tests
 
 Pattern: FastAPI TestClient with assertions
 ```python
@@ -193,17 +206,23 @@ def test_endpoint() -> None:
 ```
 
 ### JavaScript Tests
-```bash
-cd webapp && pnpm test
-```
 
 Framework: Vitest + Testing Library
 
 ## Development Workflow
 
-### Starting Services
+### Docker Services
 ```bash
-docker compose up
+make up             # Start all services
+make down           # Stop all services
+make build          # Build Docker images
+make rebuild        # Rebuild and restart (no cache)
+make restart        # Restart all services
+make ps             # Show container status
+make logs           # Tail all logs
+make logs-core      # Tail core logs
+make logs-webapp    # Tail webapp logs
+make logs-db        # Tail database logs
 ```
 
 ### Ports
@@ -216,15 +235,51 @@ docker compose up
 ### Database Migrations
 Migrations auto-run on startup via FastAPI lifespan. Manual commands:
 ```bash
-# Inside core container or with uv
-alembic revision --autogenerate -m "description"
-alembic upgrade head
+make db-migrate MSG="description"   # Create new migration
+make db-upgrade                      # Apply all pending migrations
+make db-downgrade                    # Revert last migration
+make db-history                      # Show migration history
+make db-current                      # Show current revision
+make db-shell                        # Open psql shell
 ```
+
+### Shell Access
+```bash
+make shell-core     # Bash into core container
+make shell-webapp   # Shell into webapp container
+make shell-db       # Bash into database container
+```
+
+### Utilities
+```bash
+make install        # Install all dependencies (Python + JS)
+make clean          # Remove caches and build artifacts
+make ip             # Show local IP and service URLs
+make update-ip      # Update .env with current local IP
+```
+
+## Claude Code Skills
+
+Available via `/skill-name` in Claude Code:
+
+| Skill | Description |
+|-------|-------------|
+| `/check` | Run code quality checks and auto-fix |
+| `/db` | Database utilities (shell, history, migrations) |
+| `/docker` | Docker Compose management |
+| `/fix-lint` | Auto-fix linting and formatting |
+| `/logs` | View Docker service logs |
+| `/migrate` | Create and apply Alembic migrations |
+| `/new-component` | Scaffold a React component |
+| `/new-endpoint` | Scaffold a FastAPI endpoint |
+| `/new-route` | Scaffold a TanStack Router route |
+| `/test` | Run tests |
 
 ## Key Files Reference
 
 | Purpose | File |
 |---------|------|
+| Makefile | `Makefile` |
 | FastAPI app | `core/src/core/main.py` |
 | Settings | `core/src/core/settings.py` |
 | Database | `core/src/core/database.py` |
@@ -235,3 +290,4 @@ alembic upgrade head
 | Docker setup | `compose.yaml` |
 | Python config | `pyproject.toml` |
 | JS config | `biome.json` |
+| Skills | `.claude/skills/` |
