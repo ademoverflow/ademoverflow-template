@@ -87,7 +87,7 @@ fi
 # Prompt for base port
 echo ""
 while true; do
-    echo -e "${YELLOW}Enter base port number${NC} (e.g., 8990 for ports 8997, 8998, 8999):"
+    echo -e "${YELLOW}Enter base port number${NC} (e.g., 9000 for ports 9007, 9008, 9009):"
     read -r BASE_PORT
     if validate_port "$BASE_PORT"; then
         break
@@ -124,6 +124,7 @@ echo "  - README.md"
 echo "  - CLAUDE.md"
 echo "  - core/README.md"
 echo "  - webapp/README.md"
+echo "  - Makefile"
 echo ""
 
 # Confirm
@@ -204,6 +205,12 @@ run_sed "s/localhost:8999/localhost:${CORE_PORT}/g" core/README.md
 # Update webapp/README.md - update port
 echo -e "  Updating ${GREEN}webapp/README.md${NC}..."
 run_sed "s/localhost:8998/localhost:${WEBAPP_PORT}/g" webapp/README.md
+
+# Update Makefile - ports in the `ip` and `update-ip` targets
+echo -e "  Updating ${GREEN}Makefile${NC}..."
+run_sed "s/:8999/:${CORE_PORT}/g" Makefile
+run_sed "s/:8998/:${WEBAPP_PORT}/g" Makefile
+run_sed "s/:8997/:${ADMINER_PORT}/g" Makefile
 
 # Remove bootstrap.sh itself
 echo -e "  Removing ${GREEN}bootstrap.sh${NC}..."
