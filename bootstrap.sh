@@ -206,8 +206,9 @@ run_sed "s/localhost:8999/localhost:${CORE_PORT}/g" core/README.md
 echo -e "  Updating ${GREEN}webapp/README.md${NC}..."
 run_sed "s/localhost:8998/localhost:${WEBAPP_PORT}/g" webapp/README.md
 
-# Update Makefile - ports in the `ip` and `update-ip` targets
+# Update Makefile - title banner and ports in the `ip` and `update-ip` targets
 echo -e "  Updating ${GREEN}Makefile${NC}..."
+run_sed "s/Ademoverflow Template/${PROJECT_TITLE}/g" Makefile
 run_sed "s/:8999/:${CORE_PORT}/g" Makefile
 run_sed "s/:8998/:${WEBAPP_PORT}/g" Makefile
 run_sed "s/:8997/:${ADMINER_PORT}/g" Makefile
